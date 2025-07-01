@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معالج تلاوات قرآنية إلى SRT</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Colors */
+            --primary: #00bfa6;
+            --primary-dark: #008a73;
+            --accent: #fdd835;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --error: #f44336;
+            
+            /* Light theme */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f5f5;
+            --bg-tertiary: #e0e0e0;
+            --card-bg: #ffffff;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --border: #e0e0e0;
+            --shadow: rgba(0, 0, 0, 0.1);
+            
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-2xl: 3rem;
+            
+            /* Border radius */
+            --radius-sm: 0.25rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 1rem;
+            --radius-xl: 1.5rem;
+        }
+        
+        [data-theme="dark"] {
+            --bg-primary: #323435;
+            --bg-secondary: #2a2b2c;
+            --bg-tertiary: #1e1f20;
+            --card-bg: #222324;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --border: #404040;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Amiri', 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            direction: rtl;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-lg);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: var(--spacing-2xl);
+            padding: var(--spacing-xl);
+            background: var(--card-bg);
+            border-radius: var(--radius-xl);
+            box-shadow: 0 8px 32px var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: var(--spacing-sm);
+            font-weight: 700;
+        }
+        
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-xl);
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+        }
+        
+        .theme-language-controls {
+            display: flex;
+            gap: var(--spacing-md);
+            align-items: center;
+        }
+        
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0, 191, 166, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--card-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
+            transform: translateY(-1px);
+        }
+        
+        .btn-accent {
+            background: var(--accent);
+            color: #000;
+        }
+        
+        .btn-accent:hover {
+            background: #f9c232;
+            transform: translateY(-2px);
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            margin-bottom: var(--spacing-xl);
+            box-shadow: 0 4px 20px var(--shadow);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .card-header i {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        
+        .card-header h2 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: var(--spacing-md);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 191, 166, 0.1);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: var(--spacing-md);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: inherit;
+            cursor: pointer;
+        }
+        
+        .surah-selection {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: var(--spacing-md);
+            align-items: end;
+        }
+        
+        .selected-surahs {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            background: var(--bg-primary);
+        }
+        
+        .surah-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            cursor: move;
+        }
+        
+        .surah-item:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .file-upload {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-2xl);
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .file-upload:hover {
+            border-color: var(--primary);
+            background: rgba(0, 191, 166, 0.05);
+        }
+        
+        .file-upload.dragover {
+            border-color: var(--primary);
+            background: rgba(0, 191, 166, 0.1);
+            transform: scale(1.02);
+        }
+        
+        .file-upload i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-lg);
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary);
+        }
+        
+        .progress-container {
+            margin-top: var(--spacing-lg);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border-radius: var(--radius-sm);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+        
+        .progress-text {
+            text-align: center;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .results-area {
+            background: var(--bg-primary);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Amiri', monospace;
+            line-height: 1.8;
+        }
+        
+        .download-links {
+            display: flex;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+            margin-top: var(--spacing-lg);
+        }
+        
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .status-idle {
+            background: rgba(117, 117, 117, 0.1);
+            color: var(--text-secondary);
+        }
+        
+        .status-loading {
+            background: rgba(255, 152, 0, 0.1);
+            color: var(--warning);
+        }
+        
+        .status-success {
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--success);
+        }
+        
+        .status-error {
+            background: rgba(244, 67, 54, 0.1);
+            color: var(--error);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-md);
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: var(--success);
+        }
+        
+        .notification.error {
+            background: var(--error);
+        }
+        
+        .notification.warning {
+            background: var(--warning);
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .loading-dialog {
+            background: var(--card-bg);
+            border-radius: var(--radius-xl);
+            padding: var(--spacing-2xl);
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto var(--spacing-lg);
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bounce {
+            animation: bounce 0.5s ease;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% { transform: translateY(0); }
+            40%, 43% { transform: translateY(-30px); }
+            70% { transform: translateY(-15px); }
+            90% { transform: translateY(-4px); }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--spacing-md);
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .download-links {
+                flex-direction: column;
+            }
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-sm);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: var(--radius-sm);
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header fade-in">
+            <h1><i class="fas fa-quran"></i> معالج تلاوات قرآنية إلى SRT</h1>
+            <p>حول التلاوات الصوتية إلى ملفات ترجمة مع ربطها بآيات القرآن الكريم</p>
+        </div>
+        
+        <!-- Controls -->
+        <div class="controls">
+            <div class="theme-language-controls">
+                <button class="btn btn-secondary" onclick="toggleTheme()">
+                    <i class="fas fa-moon"></i>
+                    <span id="theme-text">الوضع المظلم</span>
+                </button>
+                <button class="btn btn-secondary" onclick="toggleLanguage()">
+                    <i class="fas fa-language"></i>
+                    <span id="lang-text">English</span>
+                </button>
+            </div>
+            
+            <div class="status-indicator status-idle" id="model-status">
+                <i class="fas fa-circle"></i>
+                <span>النموذج غير محمل</span>
+            </div>
+        </div>
+        
+        <!-- Model Loading Card -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <i class="fas fa-brain"></i>
+                <h2>تحميل نموذج Whisper</h2>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="loadModel()" id="load-model-btn">
+                    <i class="fas fa-download"></i>
+                    تحميل النموذج
+                </button>
+                <p style="margin-top: var(--spacing-sm); color: var(--text-secondary);">
+                    يجب تحميل النموذج أولاً قبل البدء في معالجة الملفات الصوتية
+                </p>
+            </div>
+        </div>
+        
+        <!-- Surah Selection Card -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <i class="fas fa-list"></i>
+                <h2>اختيار السور</h2>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">بحث السور:</label>
+                <input type="text" class="form-input" placeholder="ابحث عن السورة..." 
+                       id="surah-search" oninput="filterSurahs()">
+            </div>
+            
+            <div class="surah-selection">
+                <div class="form-group">
+                    <label class="form-label">اختر السورة:</label>
+                    <select class="form-select" id="surah-select">
+                        <option value="">-- اختر سورة --</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="addSurah()">
+                    <i class="fas fa-plus"></i>
+                    إضافة
+                </button>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">السور المختارة:</label>
+                <div class="selected-surahs" id="selected-surahs">
+                    <p style="color: var(--text-secondary); text-align: center;">لم يتم اختيار سور بعد</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- File Upload Card -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <i class="fas fa-upload"></i>
+                <h2>رفع الملفات</h2>
+            </div>
+            
+            <div class="file-upload" onclick="document.getElementById('audio-file').click()" 
+                 ondrop="handleFileDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>اسحب الملف الصوتي هنا أو انقر للاختيار</h3>
+                <p>الصيغ المدعومة: MP3, WAV, M4A, FLAC</p>
+                <input type="file" id="audio-file" accept=".mp3,.wav,.m4a,.flac" style="display: none;" onchange="handleAudioFile()">
+            </div>
+            
+            <div class="file-upload" onclick="document.getElementById('srt-file').click()" style="margin-top: var(--spacing-lg);">
+                <i class="fas fa-file-alt"></i>
+                <h3>أو ارفع ملف SRT للمعالجة</h3>
+                <p>لمعالجة ملف SRT موجود مسبقاً</p>
+                <input type="file" id="srt-file" accept=".srt" style="display: none;" onchange="handleSRTFile()">
+            </div>
+            
+            <div id="file-info" class="hidden" style="margin-top: var(--spacing-lg); padding: var(--spacing-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                <p><strong>الملف المختار:</strong> <span id="file-name"></span></p>
+                <p><strong>الحجم:</strong> <span id="file-size"></span></p>
+            </div>
+        </div>
+        
+        <!-- Settings Card -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <i class="fas fa-cog"></i>
+                <h2>إعدادات المعالجة</h2>
+            </div>
+            
+            <div class="settings-grid">
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="merge-enabled">
+                        <label for="merge-enabled" class="form-label">تفعيل دمج الأسطر</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">الحد الأدنى للكلمات:</label>
+                    <input type="number" class="form-input" id="min-words" value="5" min="1" max="20">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Process Card -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <i class="fas fa-play"></i>
+                <h2>بدء المعالجة</h2>
+            </div>
+            
+            <div style="display: flex; gap: var(--spacing-md); flex-wrap: wrap;">
+                <button class="btn btn-primary" onclick="processAudio()" id="process-audio-btn" disabled>
+                    <i class="fas fa-microphone"></i>
+                    معالجة ملف صوتي
+                </button>
+                
+                <button class="btn btn-accent" onclick="processSRT()" id="process-srt-btn" disabled>
+                    <i class="fas fa-file-alt"></i>
+                    معالجة ملف SRT
+                </button>
+            </div>
+            
+            <div class="progress-container" id="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-text" id="progress-text">جاري المعالجة...</div>
+            </div>
+        </div>
+        
+        <!-- Results Card -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <i class="fas fa-file-download"></i>
+                <h2>النتائج</h2>
+            </div>
+            
+            <div class="results-area" id="results-area">
+                <p style="color: var(--text-secondary); text-align: center;">ستظهر النتائج هنا بعد المعالجة</p>
+            </div>
+            
+            <div class="download-links" id="download-links"></div>
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-dialog">
+            <div class="loading-spinner"></div>
+            <h3 id="loading-title">جاري تحميل النموذج</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="loading-progress"></div>
+            </div>
+            <p id="loading-message">جاري تجميع الموارد...</p>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Global variables
+        let currentTheme = localStorage.getItem('theme') || 'light';
+        let currentLang = localStorage.getItem('language') || 'ar';
+        let surahs = [];
+        let selectedSurahs = [];
+        let uploadedFile = null;
+        let isProcessing = false;
+        
+        // Translations
+        const translations = {
+            ar: {
+                title: "معالج تلاوات قرآنية إلى SRT",
+                subtitle: "حول التلاوات الصوتية إلى ملفات ترجمة مع ربطها بآيات القرآن الكريم",
+                darkMode: "الوضع المظلم",
+                lightMode: "الوضع المفتح",
+                loadModel: "تحميل النموذج",
+                modelNotLoaded: "النموذج غير محمل",
+                modelLoaded: "النموذج محمل",
+                modelLoading: "جاري التحميل",
+                surahSelection: "اختيار السور",
+                searchSurahs: "ابحث عن السورة...",
+                selectSurah: "-- اختر سورة --",
+                addSurah: "إضافة",
+                selectedSurahs: "السور المختارة:",
+                noSurahsSelected: "لم يتم اختيار سور بعد",
+                fileUpload: "رفع الملفات",
+                dragAudio: "اسحب الملف الصوتي هنا أو انقر للاختيار",
+                supportedFormats: "الصيغ المدعومة: MP3, WAV, M4A, FLAC",
+                dragSRT: "أو ارفع ملف SRT للمعالجة",
+                processSRTDesc: "لمعالجة ملف SRT موجود مسبقاً",
+                selectedFile: "الملف المختار:",
+                fileSize: "الحجم:",
+                processSettings: "إعدادات المعالجة",
+                enableMerge: "تفعيل دمج الأسطر",
+                minWords: "الحد الأدنى للكلمات:",
+                startProcess: "بدء المعالجة",
+                processAudio: "معالجة ملف صوتي",
+                processSRT: "معالجة ملف SRT",
+                processing: "جاري المعالجة...",
+                results: "النتائج",
+                resultsWillAppear: "ستظهر النتائج هنا بعد المعالجة",
+                loadingModel: "جاري تحميل النموذج",
+                gatheringResources: "جاري تجميع الموارد...",
+                downloadingModel: "جاري تحميل النموذج...",
+                preparingModel: "جاري تحضير النموذج...",
+                modelLoadedSuccess: "تم تحميل النموذج بنجاح",
+                error: "خطأ",
+                success: "نجح",
+                warning: "تحذير",
+                info: "معلومات"
+            },
+            en: {
+                title: "Quran Recitation to SRT Processor",
+                subtitle: "Convert audio recitations to subtitle files linked with Quran verses",
+                darkMode: "Dark Mode",
+                lightMode: "Light Mode",
+                loadModel: "Load Model",
+                modelNotLoaded: "Model Not Loaded",
+                modelLoaded: "Model Loaded",
+                modelLoading: "Loading",
+                surahSelection: "Surah Selection",
+                searchSurahs: "Search for surah...",
+                selectSurah: "-- Select Surah --",
+                addSurah: "Add",
+                selectedSurahs: "Selected Surahs:",
+                noSurahsSelected: "No surahs selected yet",
+                fileUpload: "File Upload",
+                dragAudio: "Drag audio file here or click to select",
+                supportedFormats: "Supported formats: MP3, WAV, M4A, FLAC",
+                dragSRT: "Or upload SRT file for processing",
+                processSRTDesc: "To process an existing SRT file",
+                selectedFile: "Selected file:",
+                fileSize: "Size:",
+                processSettings: "Processing Settings",
+                enableMerge: "Enable Line Merging",
+                minWords: "Minimum Words:",
+                startProcess: "Start Processing",
+                processAudio: "Process Audio File",
+                processSRT: "Process SRT File",
+                processing: "Processing...",
+                results: "Results",
+                resultsWillAppear: "Results will appear here after processing",
+                loadingModel: "Loading Model",
+                gatheringResources: "Gathering resources...",
+                downloadingModel: "Downloading model...",
+                preparingModel: "Preparing model...",
+                modelLoadedSuccess: "Model loaded successfully",
+                error: "Error",
+                success: "Success",
+                warning: "Warning",
+                info: "Info"
+            }
+        };
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTheme();
+            loadSurahs();
+            setInterval(checkModelStatus, 2000);
+        });
+        
+        // Theme functions
+        function initializeTheme() {
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            updateThemeText();
+            updateLanguage();
+        }
+        
+        function toggleTheme() {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            localStorage.setItem('theme', currentTheme);
+            updateThemeText();
+            
+            // Add bounce animation
+            document.body.classList.add('bounce');
+            setTimeout(() => document.body.classList.remove('bounce'), 500);
+        }
+        
+        function updateThemeText() {
+            const themeText = document.getElementById('theme-text');
+            const icon = themeText.previousElementSibling;
+            
+            if (currentTheme === 'light') {
+                themeText.textContent = translations[currentLang].darkMode;
+                icon.className = 'fas fa-moon';
+            } else {
+                themeText.textContent = translations[currentLang].lightMode;
+                icon.className = 'fas fa-sun';
+            }
+        }
+        
+        function toggleLanguage() {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            localStorage.setItem('language', currentLang);
+            updateLanguage();
+            
+            // Update page direction
+            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+            document.documentElement.lang = currentLang;
+        }
+        
+        function updateLanguage() {
+            const t = translations[currentLang];
+            
+            // Update language button
+            document.getElementById('lang-text').textContent = currentLang === 'ar' ? 'English' : 'العربية';
+            
+            // Update all translatable elements
+            updateThemeText();
+            
+            // You can add more translation updates here
+        }
+        
+        // API functions
+        async function loadSurahs() {
+            try {
+                const response = await fetch('/api/surahs');
+                const data = await response.json();
+                
+                if (data.success) {
+                    surahs = data.data;
+                    populateSurahSelect();
+                } else {
+                    showNotification('خطأ في تحميل السور', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading surahs:', error);
+                showNotification('خطأ في الاتصال بالخادم', 'error');
+            }
+        }
+        
+        function populateSurahSelect() {
+            const select = document.getElementById('surah-select');
+            const search = document.getElementById('surah-search').value.toLowerCase();
+            
+            select.innerHTML = '<option value="">-- اختر سورة --</option>';
+            
+            surahs.forEach(surah => {
+                const name = currentLang === 'ar' ? surah.name.ar : surah.name.en;
+                if (!search || name.toLowerCase().includes(search)) {
+                    const option = document.createElement('option');
+                    option.value = surah.id;
+                    option.textContent = name;
+                    select.appendChild(option);
+                }
+            });
+        }
+        
+        function filterSurahs() {
+            populateSurahSelect();
+        }
+        
+        function addSurah() {
+            const select = document.getElementById('surah-select');
+            const surahId = parseInt(select.value);
+            
+            if (!surahId || selectedSurahs.includes(surahId)) {
+                return;
+            }
+            
+            selectedSurahs.push(surahId);
+            updateSelectedSurahs();
+            select.value = '';
+        }
+        
+        function removeSurah(surahId) {
+            selectedSurahs = selectedSurahs.filter(id => id !== surahId);
+            updateSelectedSurahs();
+        }
+        
+        function updateSelectedSurahs() {
+            const container = document.getElementById('selected-surahs');
+            
+            if (selectedSurahs.length === 0) {
+                container.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">لم يتم اختيار سور بعد</p>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            selectedSurahs.forEach(surahId => {
+                const surah = surahs.find(s => s.id === surahId);
+                if (surah) {
+                    const item = document.createElement('div');
+                    item.className = 'surah-item';
+                    item.draggable = true;
+                    item.innerHTML = `
+                        <span>${currentLang === 'ar' ? surah.name.ar : surah.name.en}</span>
+                        <button class="btn btn-secondary" onclick="removeSurah(${surahId})" style="padding: 4px 8px;">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    container.appendChild(item);
+                }
+            });
+        }
+        
+        // File handling
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('dragover');
+        }
+        
+        function handleDragLeave(event) {
+            event.currentTarget.classList.remove('dragover');
+        }
+        
+        function handleFileDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('dragover');
+            
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('audio/')) {
+                    document.getElementById('audio-file').files = files;
+                    handleAudioFile();
+                }
+            }
+        }
+        
+        function handleAudioFile() {
+            const input = document.getElementById('audio-file');
+            const file = input.files[0];
+            
+            if (file) {
+                uploadedFile = file;
+                updateFileInfo(file);
+                uploadFile(file, 'audio');
+            }
+        }
+        
+        function handleSRTFile() {
+            const input = document.getElementById('srt-file');
+            const file = input.files[0];
+            
+            if (file) {
+                uploadedFile = file;
+                updateFileInfo(file);
+                uploadFile(file, 'srt');
+            }
+        }
+        
+        function updateFileInfo(file) {
+            const fileInfo = document.getElementById('file-info');
+            const fileName = document.getElementById('file-name');
+            const fileSize = document.getElementById('file-size');
+            
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.classList.remove('hidden');
+            
+            // Enable appropriate process button
+            if (file.type.startsWith('audio/')) {
+                document.getElementById('process-audio-btn').disabled = false;
+                document.getElementById('process-srt-btn').disabled = true;
+            } else if (file.name.endsWith('.srt')) {
+                document.getElementById('process-audio-btn').disabled = true;
+                document.getElementById('process-srt-btn').disabled = false;
+            }
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        async function uploadFile(file, type) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const endpoint = type === 'audio' ? '/api/upload_audio' : '/api/upload_srt';
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    uploadedFile.serverPath = data.filepath;
+                    showNotification('تم رفع الملف بنجاح', 'success');
+                } else {
+                    showNotification('خطأ في رفع الملف: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                showNotification('خطأ في رفع الملف', 'error');
+            }
+        }
+        
+        // Model management
+        async function loadModel() {
+            try {
+                showLoadingOverlay(true);
+                
+                const response = await fetch('/api/load_model', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Model loading started, status will be checked by interval
+                } else {
+                    showNotification('خطأ في تحميل النموذج: ' + data.error, 'error');
+                    showLoadingOverlay(false);
+                }
+            } catch (error) {
+                console.error('Model loading error:', error);
+                showNotification('خطأ في تحميل النموذج', 'error');
+                showLoadingOverlay(false);
+            }
+        }
+        
+        async function checkModelStatus() {
+            try {
+                const response = await fetch('/api/model_status');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const status = data.data;
+                    updateModelStatus(status);
+                    updateLoadingProgress(status);
+                    
+                    // Check for processing results
+                    if (status.processing_result) {
+                        handleProcessingResult(status.processing_result);
+                    }
+                    
+                    if (status.processing_error) {
+                        showNotification('خطأ في المعالجة: ' + status.processing_error, 'error');
+                        hideProcessing();
+                    }
+                }
+            } catch (error) {
+                // Silently fail for status checks
+            }
+        }
+        
+        function updateModelStatus(status) {
+            const statusElement = document.getElementById('model-status');
+            const loadButton = document.getElementById('load-model-btn');
+            
+            statusElement.className = 'status-indicator';
+            
+            switch (status.status) {
+                case 'idle':
+                    statusElement.classList.add('status-idle');
+                    statusElement.innerHTML = '<i class="fas fa-circle"></i><span>النموذج غير محمل</span>';
+                    loadButton.disabled = false;
+                    loadButton.innerHTML = '<i class="fas fa-download"></i> تحميل النموذج';
+                    break;
+                    
+                case 'loading':
+                    statusElement.classList.add('status-loading');
+                    statusElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>جاري التحميل</span>';
+                    loadButton.disabled = true;
+                    loadButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحميل...';
+                    break;
+                    
+                case 'loaded':
+                    statusElement.classList.add('status-success');
+                    statusElement.innerHTML = '<i class="fas fa-check-circle"></i><span>النموذج محمل</span>';
+                    loadButton.disabled = true;
+                    loadButton.innerHTML = '<i class="fas fa-check"></i> تم التحميل';
+                    showLoadingOverlay(false);
+                    showNotification('تم تحميل النموذج بنجاح', 'success');
+                    break;
+                    
+                case 'error':
+                    statusElement.classList.add('status-error');
+                    statusElement.innerHTML = '<i class="fas fa-exclamation-circle"></i><span>خطأ في التحميل</span>';
+                    loadButton.disabled = false;
+                    loadButton.innerHTML = '<i class="fas fa-download"></i> إعادة المحاولة';
+                    showLoadingOverlay(false);
+                    showNotification('خطأ في تحميل النموذج', 'error');
+                    break;
+            }
+        }
+        
+        function updateLoadingProgress(status) {
+            if (status.status === 'loading') {
+                const progressFill = document.getElementById('loading-progress');
+                const messageElement = document.getElementById('loading-message');
+                
+                progressFill.style.width = status.progress + '%';
+                messageElement.textContent = status.message;
+            }
+        }
+        
+        // Processing functions
+        async function processAudio() {
+            if (!uploadedFile || !uploadedFile.serverPath) {
+                showNotification('يرجى رفع ملف صوتي أولاً', 'warning');
+                return;
+            }
+            
+            if (selectedSurahs.length === 0) {
+                showNotification('يرجى اختيار سورة واحدة على الأقل', 'warning');
+                return;
+            }
+            
+            showProcessing(true);
+            
+            try {
+                const settings = getProcessingSettings();
+                
+                const response = await fetch('/api/process_audio', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filepath: uploadedFile.serverPath,
+                        selected_surahs: selectedSurahs,
+                        min_words: settings.minWords,
+                        merge_enabled: settings.mergeEnabled
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('بدأت معالجة الملف الصوتي', 'success');
+                } else {
+                    showNotification('خطأ في معالجة الملف: ' + data.error, 'error');
+                    hideProcessing();
+                }
+            } catch (error) {
+                console.error('Processing error:', error);
+                showNotification('خطأ في معالجة الملف', 'error');
+                hideProcessing();
+            }
+        }
+        
+        async function processSRT() {
+            if (!uploadedFile || !uploadedFile.serverPath) {
+                showNotification('يرجى رفع ملف SRT أولاً', 'warning');
+                return;
+            }
+            
+            if (selectedSurahs.length === 0) {
+                showNotification('يرجى اختيار سورة واحدة على الأقل', 'warning');
+                return;
+            }
+            
+            showProcessing(true);
+            
+            try {
+                const settings = getProcessingSettings();
+                
+                const response = await fetch('/api/process_srt', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        filepath: uploadedFile.serverPath,
+                        selected_surahs: selectedSurahs,
+                        min_words: settings.minWords,
+                        merge_enabled: settings.mergeEnabled
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    handleProcessingResult(data.data);
+                    showNotification('تمت معالجة ملف SRT بنجاح', 'success');
+                } else {
+                    showNotification('خطأ في معالجة الملف: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Processing error:', error);
+                showNotification('خطأ في معالجة الملف', 'error');
+            } finally {
+                hideProcessing();
+            }
+        }
+        
+        function getProcessingSettings() {
+            return {
+                mergeEnabled: document.getElementById('merge-enabled').checked,
+                minWords: parseInt(document.getElementById('min-words').value) || 5
+            };
+        }
+        
+        function handleProcessingResult(result) {
+            const resultsArea = document.getElementById('results-area');
+            const downloadLinks = document.getElementById('download-links');
+            
+            // Display results summary
+            let summary = `تمت المعالجة بنجاح!\n`;
+            summary += `عدد الأجزاء: ${result.total_segments || 'غير محدد'}\n`;
+            summary += `الملفات المنتجة:\n`;
+            
+            if (result.processed_srt_path) {
+                summary += `- ملف SRT معالج\n`;
+            }
+            if (result.ranges_path) {
+                summary += `- ملف نطاقات السور\n`;
+            }
+            if (result.backup_path) {
+                summary += `- نسخة احتياطية\n`;
+            }
+            
+            resultsArea.textContent = summary;
+            
+            // Create download links
+            downloadLinks.innerHTML = '';
+            
+            if (result.processed_srt_path) {
+                addDownloadLink('تحميل ملف SRT', result.processed_srt_path, downloadLinks);
+            }
+            if (result.ranges_path) {
+                addDownloadLink('تحميل نطاقات السور', result.ranges_path, downloadLinks);
+            }
+            if (result.backup_path) {
+                addDownloadLink('تحميل النسخة الاحتياطية', result.backup_path, downloadLinks);
+            }
+        }
+        
+        function addDownloadLink(text, filepath, container) {
+            const filename = filepath.split('/').pop();
+            const link = document.createElement('a');
+            link.href = `/api/download/${filename}`;
+            link.className = 'btn btn-primary';
+            link.innerHTML = `<i class="fas fa-download"></i> ${text}`;
+            link.target = '_blank';
+            container.appendChild(link);
+        }
+        
+        // UI helper functions
+        function showProcessing(show) {
+            const container = document.getElementById('progress-container');
+            const progressFill = document.getElementById('progress-fill');
+            const progressText = document.getElementById('progress-text');
+            
+            if (show) {
+                container.style.display = 'block';
+                progressFill.style.width = '0%';
+                progressText.textContent = 'جاري المعالجة...';
+                isProcessing = true;
+                
+                // Simulate progress
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 10;
+                    if (progress > 90) progress = 90;
+                    progressFill.style.width = progress + '%';
+                }, 500);
+                
+                container.progressInterval = interval;
+            } else {
+                container.style.display = 'none';
+                if (container.progressInterval) {
+                    clearInterval(container.progressInterval);
+                }
+                isProcessing = false;
+            }
+        }
+        
+        function hideProcessing() {
+            showProcessing(false);
+        }
+        
+        function showLoadingOverlay(show) {
+            const overlay = document.getElementById('loading-overlay');
+            overlay.style.display = show ? 'flex' : 'none';
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
